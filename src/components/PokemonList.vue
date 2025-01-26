@@ -31,6 +31,7 @@ import { usePokemonStore } from '../store/pokemonStore';
 import { storeToRefs } from 'pinia';
 import { useRouter } from 'vue-router';
 import Loader from '../components/Loader.vue';
+import '../assets/PokemonList.css';
 
 const store = usePokemonStore();
 const { pokemons, filteredPokemon } = storeToRefs(store);
@@ -52,37 +53,5 @@ const goToDetails = (name) => {
 </script>
 
 <style scoped>
-.card {
-    cursor: pointer;
-    transition: transform 0.2s;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 10px;
-}
 
-.card:hover {
-    transform: scale(1.05);
-}
-
-.image-container {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    /* overflow: hidden; */
-}
-
-/* Pokémon Image: Grows based on card size */
-.pokemon-img {
-    width: 80%;
-    height: auto;
-    max-height: 100%;
-    object-fit: contain;
-    transition: transform 0.2s ease-in-out;
-}
-
-.card:hover .pokemon-img {
-    transform: scale(1.4);
-}
 </style>

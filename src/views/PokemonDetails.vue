@@ -81,6 +81,7 @@ import { ref, onMounted, computed, nextTick } from 'vue';
 import axios from 'axios';
 import { useRoute } from 'vue-router';
 import Loader from '../components/Loader.vue';
+import '../assets/PokemonDetails.css';
 
 const route = useRoute();
 const pokemon = ref({
@@ -123,8 +124,8 @@ onMounted(async () => {
     }
 });
 
-const abilities = computed(() => pokemon.value.abilities.join(', '));
-const types = computed(() => pokemon.value.types.join(', '));
+// const abilities = computed(() => pokemon.value.abilities.join(', '));
+// const types = computed(() => pokemon.value.types.join(', '));
 </script>
 
 <style scoped>
