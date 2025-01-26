@@ -18,7 +18,7 @@
                 </div>
 
                 <!-- Right Column -->
-                <div class="pokemon-types text-md-end text-center">
+                <div class="pokemon-types text-md-start text-center">
                     <p class="fs-5"><strong>Type(s):</strong>
                         <span v-for="type in pokemon.types" :key="type" class="badge bg-primary mx-1">
                             {{ type }}
