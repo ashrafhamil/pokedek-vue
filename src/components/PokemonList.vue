@@ -85,4 +85,6 @@ const goToDetails = (name) => {
 .card:hover .pokemon-img {
     transform: scale(1.4);
 }
+
+/* todo: refactor and extract CSS styles */
 </style>

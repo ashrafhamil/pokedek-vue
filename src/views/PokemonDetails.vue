@@ -192,9 +192,16 @@ const types = computed(() => pokemon.value.types.join(', '));
     font-weight: bold;
 }
 
+.card:hover .pokemon-img {
+    transition: transform 0.2s ease-in-out;
+    transform: scale(1.4);
+}
+
 @media (max-width: 768px) {
     .pokemon-img {
         width: 140px;
     }
 }
+
+/* todo: refactor and extract CSS styles */
 </style>
