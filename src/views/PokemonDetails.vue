@@ -2,41 +2,39 @@
     <div class="container py-5">
         <Loader v-if="loading" />
 
-        <div v-else class="card shadow-lg p-4 text-center fade-in">
-            <h1 class="text-capitalize fw-bold">{{ pokemon.name }}</h1>
+        <div v-else-if="selectedPokemon" class="card shadow-lg p-4 text-center fade-in">
+            <h1 class="text-capitalize fw-bold">{{ selectedPokemon.name }}</h1>
             <div class="d-flex justify-content-center">
-                <img :src="pokemon.image" class="pokemon-img" :alt="pokemon.name" />
+                <img :src="selectedPokemon.image" class="pokemon-img" :alt="selectedPokemon.name" />
             </div>
 
             <!-- Two-Column Layout -->
             <div class="pokemon-info mt-4 d-flex flex-column flex-md-row justify-content-between">
-                <!-- Left Column -->
                 <div class="pokemon-stats text-md-start text-center">
-                    <p class="fs-5"><strong>Height:</strong> {{ pokemon.height }}</p>
-                    <p class="fs-5"><strong>Weight:</strong> {{ pokemon.weight }}</p>
-                    <p class="fs-5"><strong>Base Experience:</strong> {{ pokemon.base_experience }}</p>
+                    <p class="fs-5"><strong>Height:</strong> {{ selectedPokemon.height }}</p>
+                    <p class="fs-5"><strong>Weight:</strong> {{ selectedPokemon.weight }}</p>
+                    <p class="fs-5"><strong>Base Experience:</strong> {{ selectedPokemon.base_experience }}</p>
                 </div>
 
-                <!-- Right Column -->
-                <div class="pokemon-types text-md-start text-center">
+                <div class="pokemon-types text-md-end text-center">
                     <p class="fs-5"><strong>Type(s):</strong>
-                        <span v-for="type in pokemon.types" :key="type" class="badge bg-primary mx-1">
+                        <span v-for="type in selectedPokemon.types" :key="type" class="badge bg-primary mx-1">
                             {{ type }}
                         </span>
                     </p>
                     <p class="fs-5"><strong>Abilities:</strong>
-                        <span v-for="ability in pokemon.abilities" :key="ability" class="badge bg-success mx-1">
+                        <span v-for="ability in selectedPokemon.abilities" :key="ability" class="badge bg-success mx-1">
                             {{ ability }}
                         </span>
                     </p>
                 </div>
             </div>
 
-            <!-- Base Stats -->
-            <div class="stats-container mt-4">
+            <!-- Base Stats with Progress Bars -->
+            <div class="stats-container my-4">
                 <h3 class="fw-bold">Base Stats</h3>
                 <div class="row justify-content-center">
-                    <div v-for="stat in pokemon.stats" :key="stat.name" class="col-6 col-md-4">
+                    <div v-for="stat in selectedPokemon.stats" :key="stat.name" class="col-12 col-md-6">
                         <div class="stat-card">
                             <strong>{{ stat.name.toUpperCase() }}</strong>
                             <div class="progress">
@@ -51,157 +49,64 @@
                 </div>
             </div>
 
-            <!-- Moves -->
-            <!-- <div class="moves-container mt-4">
-                <h3 class="fw-bold">Moves (First 5)</h3>
-                <ul class="list-group list-group-flush">
-                    <li v-for="move in pokemon.moves.slice(0, 5)" :key="move" class="list-group-item">
+            <!-- Moves Section -->
+            <div class="moves-container my-2">
+                <h3 class="fw-bold text-center">Top 5 Moves</h3>
+                <div class="d-flex flex-wrap justify-content-center gap-2">
+                    <span v-for="move in selectedPokemon.moves.slice(0, 5)" :key="move" class="badge move-badge">
                         {{ move }}
-                    </li>
-                </ul>
-            </div> -->
+                    </span>
+                </div>
+            </div>
 
-            <!-- Held Items -->
-            <!-- <div v-if="pokemon.held_items.length > 0" class="mt-4">
-                <h3 class="fw-bold">Held Items</h3>
-                <ul class="list-group list-group-flush">
-                    <li v-for="item in pokemon.held_items" :key="item" class="list-group-item">
-                        {{ item }}
-                    </li>
-                </ul>
-            </div> -->
+            <!-- Edit Button -->
+            <button class="btn btn-warning mt-3" @click="showEditModal = true">Edit Pokémon</button>
+
+            <!-- Reusable Edit Modal Component -->
+            <EditPokemonModal v-if="showEditModal" :pokemon="editablePokemon" @update="updatePokemonDetails"
+                @close="showEditModal = false" />
 
             <router-link to="/" class="btn btn-outline-primary mt-4">Back to List</router-link>
+        </div>
+
+        <div v-else class="text-center">
+            <p class="fs-5">No Pokémon data found.</p>
         </div>
     </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed, nextTick } from 'vue';
-import axios from 'axios';
+import { ref, onMounted, watch, nextTick } from 'vue';
+import { usePokemonDetailsStore } from '../store/pokemonDetailsStore';
+import { storeToRefs } from 'pinia';
 import { useRoute } from 'vue-router';
 import Loader from '../components/Loader.vue';
+import EditPokemonModal from '../components/EditPokemonModal.vue';
+import '../assets/PokemonDetails.css';
 
 const route = useRoute();
-const pokemon = ref({
-    name: '',
-    image: '',
-    height: '',
-    weight: '',
-    base_experience: '',
-    abilities: [],
-    types: [],
-    stats: [],
-});
+const store = usePokemonDetailsStore();
+const { selectedPokemon } = storeToRefs(store);
+const { fetchPokemonDetails, updatePokemonDetails } = store;
 
 const loading = ref(true);
+const showEditModal = ref(false);
+const editablePokemon = ref({});
 
 onMounted(async () => {
     window.scrollTo(0, 0);
-    try {
-        const response = await axios.get(`https://pokeapi.co/api/v2/pokemon/${route.params.name}`);
-
-        pokemon.value = {
-            name: response.data.name,
-            image: response.data.sprites.other['official-artwork'].front_default || response.data.sprites.front_default,
-            height: response.data.height,
-            weight: response.data.weight,
-            base_experience: response.data.base_experience,
-            abilities: response.data.abilities.map(a => a.ability.name),
-            types: response.data.types.map(t => t.type.name),
-            stats: response.data.stats.map(s => ({ name: s.stat.name, value: s.base_stat })),
-            // moves: response.data.moves.map(m => m.move.name),
-            // held_items: response.data.held_items.map(i => i.item.name),
-        };
-
-        // Wait until Vue renders the DOM completely before hiding loader
-        await nextTick();
-    } catch (error) {
-        console.error("Error fetching Pokémon details:", error);
-    } finally {
-        loading.value = false;
-    }
+    loading.value = true;
+    await fetchPokemonDetails(route.params.name);
+    await nextTick();
+    loading.value = false;
 });
 
-const abilities = computed(() => pokemon.value.abilities.join(', '));
-const types = computed(() => pokemon.value.types.join(', '));
+// Watch for selectedPokemon changes and update editablePokemon
+watch(selectedPokemon, (newPokemon) => {
+    if (newPokemon) {
+        editablePokemon.value = { ...newPokemon };
+    }
+}, { immediate: true });
 </script>
 
-<style scoped>
-.pokemon-img {
-    width: 180px;
-    height: auto;
-}
-
-/* Two-column layout on desktop */
-.pokemon-info {
-    display: flex;
-    flex-direction: column;
-}
-
-/* On Desktop: Align items side by side */
-@media (min-width: 768px) {
-    .pokemon-info {
-        flex-direction: row;
-        justify-content: space-between;
-    }
-    
-    .pokemon-stats .pokemon-types {
-        text-align: left;
-    }
-}
-
-/* Smooth Fade-in Animation */
-.fade-in {
-    opacity: 0;
-    animation: fadeIn 0.5s ease-in-out forwards;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
-}
-
-.card {
-    max-width: 600px;
-    margin: auto;
-    border-radius: 15px;
-    border: none;
-    background: #f8f9fa;
-    padding: 20px;
-}
-
-.stat-card {
-    text-align: center;
-    margin-bottom: 10px;
-}
-
-.progress {
-    height: 20px;
-    border-radius: 10px;
-    background-color: #e9ecef;
-    overflow: hidden;
-}
-
-.progress-bar {
-    font-weight: bold;
-}
-
-.card:hover .pokemon-img {
-    transition: transform 0.2s ease-in-out;
-    transform: scale(1.4);
-}
-
-@media (max-width: 768px) {
-    .pokemon-img {
-        width: 140px;
-    }
-}
-
-/* todo: refactor and extract CSS styles */
-</style>
+<style scoped></style>

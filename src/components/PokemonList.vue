@@ -1,12 +1,9 @@
 <template>
     <div class="container py-4">
-
         <Loader v-if="loading" />
-
         <div v-else>
             <h1 class="text-center">Pokémon List</h1>
             <input type="text" class="form-control mb-3" placeholder="Search Pokémon..." v-model="searchQuery" />
-
             <div class="row">
                 <div v-for="pokemon in filteredPokemon" :key="pokemon.id" class="col-md-3 col-sm-6 mb-4">
                     <div class="card text-center shadow-sm" @click="goToDetails(pokemon.name)">
@@ -33,7 +30,7 @@ import { useRouter } from 'vue-router';
 import Loader from '../components/Loader.vue';
 
 const store = usePokemonStore();
-const { pokemons, filteredPokemon } = storeToRefs(store);
+const { filteredPokemon, searchQuery } = storeToRefs(store);
 const { fetchPokemons } = store;
 const router = useRouter();
 const loading = ref(true);
@@ -43,8 +40,6 @@ onMounted(async () => {
     await fetchPokemons();
     loading.value = false;
 });
-
-const searchQuery = storeToRefs(store).searchQuery;
 
 const goToDetails = (name) => {
     router.push(`/pokemon/${name}`);
